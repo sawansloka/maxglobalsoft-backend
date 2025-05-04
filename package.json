@@ -1,0 +1,65 @@
+{
+  "name": "maxglobalsoft",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --write 'src/'",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx}": [
+      "npm run lint -- --fix",
+      "npm run format"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sawansloka/maxglobalsoft-backend.git"
+  },
+  "author": "Sloka Sawan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sawansloka/maxglobalsoft-backend/issues"
+  },
+  "homepage": "https://github.com/sawansloka/maxglobalsoft-backend#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.651.1",
+    "axios": "^1.8.3",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "googleapis": "^144.0.0",
+    "gridfs-stream": "^1.1.1",
+    "http-status": "^1.7.4",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "logger": "^0.0.1",
+    "mongodb": "^5.9.1",
+    "mongoose": "^8.5.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.4",
+    "multer-gridfs-storage": "^5.0.2",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.4",
+    "puppeteer": "^19.7.4",
+    "uuid": "^10.0.0",
+    "validator": "^13.12.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.4",
+    "prettier": "^3.3.3"
+  }
+}
