@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 
-const careerSchema = new mongoose.Schema(
+const partnersSchema = new mongoose.Schema(
   {
-    jobTypes: {
+    title: {
       type: String,
-      required: [true, 'Job type is required']
+      required: [true, 'Title is required'],
+      trim: true,
+      maxlength: [100, 'Title must be less than or equal to 100 characters']
     },
-    totalExp: {
+    url: {
       type: String,
-      required: [true, 'Please provide total experience']
-    },
-    location: {
-      type: String,
-      required: [true, 'Please provide location']
-    },
-    date: {
-      type: Date,
-      required: [true, 'Please provide date']
+      trim: true,
+      validate: {
+        validator(v) {
+          return !v || /^https?:\/\/[\w-]+(\.[\w-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL`
+      }
     },
     shortDescription: {
       type: String,
@@ -26,13 +26,10 @@ const careerSchema = new mongoose.Schema(
         'Short description must be less than or equal to 300 characters'
       ]
     },
-    description: {
-      type: String,
-      trim: true,
-      minlength: [
-        100,
-        'Short description must be less than or equal to 300 characters'
-      ]
+    displayOrder: {
+      type: Number,
+      min: [1, 'Display order must be at least 1'],
+      default: 1
     },
     status: {
       type: String,
@@ -53,4 +50,4 @@ const careerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Career', careerSchema);
+module.exports = mongoose.model('Partners', partnersSchema);

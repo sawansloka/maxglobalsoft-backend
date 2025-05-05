@@ -9,7 +9,7 @@ const router = express.Router();
 
 // banner routes
 router
-  .route('/banner/')
+  .route('/banner')
   .post(adminAuth, bannerController.createBanner)
   .get(adminAuth, bannerController.getBanners);
 
@@ -21,7 +21,7 @@ router
 
 // Company Value routes
 router
-  .route('/company-values/')
+  .route('/company-values')
   .post(adminAuth, companyValueController.createCompanyValue)
   .get(adminAuth, companyValueController.getCompanyValues);
 
@@ -33,7 +33,7 @@ router
 
 // service routes
 router
-  .route('/service/')
+  .route('/service')
   .post(adminAuth, serviceController.createService)
   .get(adminAuth, serviceController.getServices);
 
@@ -45,7 +45,7 @@ router
 
 // subscription routes
 router
-  .route('/subscription/')
+  .route('/subscription')
   .post(adminAuth, subscriptionController.createSubscription)
   .get(adminAuth, subscriptionController.getSubscriptions);
 

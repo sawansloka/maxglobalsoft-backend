@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
-const clientSpeakSchema = new mongoose.Schema(
+const projectsSchema = new mongoose.Schema(
   {
-    title: {
+    selectCategory: {
       type: String,
-      required: [true, 'Title is required'],
-      trim: true,
-      maxlength: [100, 'Title must be less than or equal to 100 characters']
+      required: [true, 'Category is required']
     },
     name: {
       type: String,
       required: [true, 'Please provide name']
     },
-    location: {
+    title: {
       type: String,
-      required: [true, 'Please provide location']
+      required: [true, 'Title is required'],
+      trim: true,
+      maxlength: [100, 'Title must be less than or equal to 100 characters']
     },
     youtubeLink: {
       type: String,
@@ -26,9 +26,35 @@ const clientSpeakSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid URL`
       }
     },
-    date: {
-      type: Date,
-      required: [true, 'Please provide date']
+    appStoreUrl: {
+      type: String,
+      trim: true,
+      validate: {
+        validator(v) {
+          return !v || /^https?:\/\/[\w-]+(\.[\w-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL`
+      }
+    },
+    googlePlayUrl: {
+      type: String,
+      trim: true,
+      validate: {
+        validator(v) {
+          return !v || /^https?:\/\/[\w-]+(\.[\w-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL`
+      }
+    },
+    webUrl: {
+      type: String,
+      trim: true,
+      validate: {
+        validator(v) {
+          return !v || /^https?:\/\/[\w-]+(\.[\w-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL`
+      }
     },
     shortDescription: {
       type: String,
@@ -38,12 +64,17 @@ const clientSpeakSchema = new mongoose.Schema(
         'Short description must be less than or equal to 300 characters'
       ]
     },
+    displayOrder: {
+      type: Number,
+      min: [1, 'Display order must be at least 1'],
+      default: 1
+    },
     description: {
       type: String,
       trim: true,
       minlength: [
         100,
-        'Short description must be less than or equal to 300 characters'
+        'Description must be greater than or equal to 100 characters'
       ]
     },
     status: {
@@ -65,4 +96,4 @@ const clientSpeakSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('ClientSpeak', clientSpeakSchema);
+module.exports = mongoose.model('Projects', projectsSchema);

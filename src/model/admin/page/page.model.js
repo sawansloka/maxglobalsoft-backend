@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const clientSpeakSchema = new mongoose.Schema(
+const pageSchema = new mongoose.Schema(
   {
+    selectCategory: {
+      type: String,
+      required: [true, 'Category is required']
+    },
     title: {
       type: String,
       required: [true, 'Title is required'],
@@ -12,11 +16,7 @@ const clientSpeakSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide name']
     },
-    location: {
-      type: String,
-      required: [true, 'Please provide location']
-    },
-    youtubeLink: {
+    redirectUrl: {
       type: String,
       trim: true,
       validate: {
@@ -26,9 +26,15 @@ const clientSpeakSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid URL`
       }
     },
-    date: {
-      type: Date,
-      required: [true, 'Please provide date']
+    keyUrl: {
+      type: String,
+      trim: true,
+      validate: {
+        validator(v) {
+          return !v || /^https?:\/\/[\w-]+(\.[\w-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL`
+      }
     },
     shortDescription: {
       type: String,
@@ -38,12 +44,17 @@ const clientSpeakSchema = new mongoose.Schema(
         'Short description must be less than or equal to 300 characters'
       ]
     },
+    displayOrder: {
+      type: Number,
+      min: [1, 'Display order must be at least 1'],
+      default: 1
+    },
     description: {
       type: String,
       trim: true,
       minlength: [
         100,
-        'Short description must be less than or equal to 300 characters'
+        'Description must be greater than or equal to 100 characters'
       ]
     },
     status: {
@@ -60,9 +71,19 @@ const clientSpeakSchema = new mongoose.Schema(
         },
         message: 'Image must be a valid base64 encoded string with image type'
       }
+    },
+    banner: {
+      type: String,
+      required: [true, 'Image (base64) is required'],
+      validate: {
+        validator(v) {
+          return /^data:image\/(png|jpeg|jpg|webp);base64,/.test(v);
+        },
+        message: 'Image must be a valid base64 encoded string with image type'
+      }
     }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('ClientSpeak', clientSpeakSchema);
+module.exports = mongoose.model('Page', pageSchema);
