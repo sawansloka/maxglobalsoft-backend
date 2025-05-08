@@ -27,7 +27,7 @@ router
 
 router
   .route('/client-speak/:id')
-  .get(adminAuth, clientSpeakController.getClientSpeaktById)
+  .get(adminAuth, clientSpeakController.getClientSpeakById)
   .put(adminAuth, clientSpeakController.updateClientSpeak)
   .delete(adminAuth, clientSpeakController.deleteClientSpeak);
 
@@ -47,7 +47,7 @@ router
 router
   .route('/social-network')
   .post(adminAuth, socialNetworkController.createSocialNetwork)
-  .get(adminAuth, socialNetworkController.getSocialNetworks);
+  .get(adminAuth, socialNetworkController.getSocialNetwork);
 
 router
   .route('/social-network/:id')
