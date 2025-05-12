@@ -48,12 +48,32 @@ exports.createApplication = async (req, res) => {
 
 exports.getAllApplications = async (req, res) => {
   try {
-    logger.info('Fetching all applications...');
-    const applications = await Application.find().sort({ createdAt: -1 });
+    logger.info('Fetching all applications with search and pagination...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      applicantName: { $regex: searchRegex }
+    };
+
+    const [applications, total] = await Promise.all([
+      Application.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit, 10)),
+      Application.countDocuments(query)
+    ]);
 
     logger.info('Applications fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      totalPages: Math.ceil(total / limit),
       data: applications
     });
   } catch (err) {

@@ -25,11 +25,31 @@ exports.createPage = async (req, res) => {
 
 exports.getAllPages = async (req, res) => {
   try {
-    logger.info('Fetching all pages...');
-    const pages = await Page.find().sort({ createdAt: -1 });
+    logger.info('Fetching all pages with search and pagination...');
 
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      $or: [{ title: { $regex: searchRegex } }]
+    };
+
+    const [pages, total] = await Promise.all([
+      Page.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
+      Page.countDocuments(query)
+    ]);
+
+    logger.info('Pages fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data: pages
     });
   } catch (err) {

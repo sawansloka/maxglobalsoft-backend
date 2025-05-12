@@ -36,8 +36,24 @@ exports.createSocialNetwork = async (req, res) => {
 
 exports.getSocialNetwork = async (req, res) => {
   try {
-    logger.info('Fetching Social Network entry...');
-    const data = await SocialNetwork.findOne();
+    logger.info('Fetching Social Network entry with optional search...');
+
+    const { search = '' } = req.query;
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      $or: [
+        { facebook: { $regex: searchRegex } },
+        { instagram: { $regex: searchRegex } },
+        { twitter: { $regex: searchRegex } },
+        { linkedin: { $regex: searchRegex } },
+        { youtube: { $regex: searchRegex } }
+      ]
+    };
+
+    const data = search
+      ? await SocialNetwork.findOne(query)
+      : await SocialNetwork.findOne();
 
     return res.status(StatusCodes.OK).json({
       status: 'Success',

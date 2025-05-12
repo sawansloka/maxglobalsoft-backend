@@ -48,12 +48,33 @@ exports.createClientSpeak = async (req, res) => {
 
 exports.getClientSpeaks = async (req, res) => {
   try {
-    logger.info('Fetching all Client Speak entries...');
-    const entries = await ClientSpeak.find().sort({ createdAt: -1 });
+    logger.info('Fetching Client Speak entries with pagination and search...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const searchRegex = new RegExp(search, 'i'); // case-insensitive
+
+    const query = {
+      $or: [
+        { title: { $regex: searchRegex } },
+        { name: { $regex: searchRegex } },
+        { location: { $regex: searchRegex } },
+        { shortDescription: { $regex: searchRegex } }
+      ]
+    };
+
+    const total = await ClientSpeak.countDocuments(query);
+    const entries = await ClientSpeak.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
     logger.info('Client Speak entries fetched successfully.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: entries
     });
   } catch (err) {

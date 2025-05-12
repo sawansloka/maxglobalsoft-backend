@@ -46,12 +46,33 @@ exports.createNewsEvent = async (req, res) => {
 
 exports.getAllNewsEvents = async (req, res) => {
   try {
-    logger.info('Fetching all news/events...');
-    const events = await NewsEvents.find().sort({ date: -1 });
+    logger.info('Fetching news/events with pagination and search...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const searchRegex = new RegExp(search, 'i'); // case-insensitive
+
+    const query = {
+      $or: [
+        { title: { $regex: searchRegex } },
+        { name: { $regex: searchRegex } },
+        { location: { $regex: searchRegex } },
+        { shortDescription: { $regex: searchRegex } }
+      ]
+    };
+
+    const total = await NewsEvents.countDocuments(query);
+    const events = await NewsEvents.find(query)
+      .sort({ date: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
     logger.info('News/Events fetched successfully.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: events
     });
   } catch (err) {

@@ -31,12 +31,31 @@ exports.createMenu = async (req, res) => {
 
 exports.getAllMenus = async (req, res) => {
   try {
-    logger.info('Fetching all menus...');
-    const menus = await Menu.find().sort({ createdAt: -1 });
+    logger.info('Fetching all menus with search and pagination...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      $or: [{ name: { $regex: searchRegex } }]
+    };
+
+    const [menus, total] = await Promise.all([
+      Menu.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
+      Menu.countDocuments(query)
+    ]);
 
     logger.info('Menus fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data: menus
     });
   } catch (err) {

@@ -35,12 +35,26 @@ exports.createBanner = async (req, res) => {
 
 exports.getBanners = async (req, res) => {
   try {
-    logger.info('Fetching all banners...');
-    const banners = await Banner.find().sort({ displayOrder: 1 });
+    logger.info('Fetching banners with pagination and search...');
 
-    logger.info('Banners fetched successfully.');
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const query = {
+      bannerTitle: { $regex: search, $options: 'i' }
+    };
+
+    const total = await Banner.countDocuments(query);
+    const banners = await Banner.find(query)
+      .sort({ displayOrder: 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    logger.info('Banners fetched successfully with pagination and search.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalRecords: total,
       data: banners
     });
   } catch (err) {

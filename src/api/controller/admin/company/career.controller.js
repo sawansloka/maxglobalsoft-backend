@@ -46,12 +46,27 @@ exports.createCareer = async (req, res) => {
 
 exports.getCareers = async (req, res) => {
   try {
-    logger.info('Fetching all Career entries...');
-    const careers = await Career.find().sort({ createdAt: -1 });
+    logger.info('Fetching Career entries with pagination and search...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const searchRegex = new RegExp(search, 'i');
+    const query = {
+      jobTypes: { $regex: searchRegex }
+    };
+
+    const total = await Career.countDocuments(query);
+    const careers = await Career.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
     logger.info('Career entries fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: careers
     });
   } catch (err) {

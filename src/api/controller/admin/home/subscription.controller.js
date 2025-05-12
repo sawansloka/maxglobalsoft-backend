@@ -28,12 +28,26 @@ exports.createSubscription = async (req, res) => {
 
 exports.getSubscriptions = async (req, res) => {
   try {
-    logger.info('Fetching all subscriptions...');
-    const subscriptions = await Subscription.find().sort({ createdAt: -1 });
+    logger.info('Fetching subscriptions with pagination and search...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const query = {
+      emailId: { $regex: search, $options: 'i' }
+    };
+
+    const total = await Subscription.countDocuments(query);
+    const subscriptions = await Subscription.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
 
     logger.info('Subscriptions fetched successfully.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: subscriptions
     });
   } catch (err) {
