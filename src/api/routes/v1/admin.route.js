@@ -6,11 +6,13 @@ const applicationRoutes = require('./application.route');
 const portfolioRoutes = require('./portfolio.route');
 const pageRoutes = require('./page.route');
 const partnerRoutes = require('./partner.route');
+const adminAuth = require('../../middleware/adminAuth');
 
 const router = express.Router();
 
 // Admin
 router.route('/login').post(adminController.login);
+router.route('/logout').post(adminAuth, adminController.logout);
 
 router.use('/v1/home', homeRoutes);
 router.use('/v1/company', companyRoutes);

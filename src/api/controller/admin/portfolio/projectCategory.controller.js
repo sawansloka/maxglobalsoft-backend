@@ -2,7 +2,6 @@ const { StatusCodes } = require('http-status-codes');
 const ProjectCategory = require('../../../../model/admin/portfolio/projectCategory.model');
 const { logger } = require('../../../../config/logger');
 
-// Create a new project category
 exports.createProjectCategory = async (req, res) => {
   try {
     logger.info('Creating new Project Category...');
@@ -31,15 +30,38 @@ exports.createProjectCategory = async (req, res) => {
   }
 };
 
-// Get all project categories
 exports.getAllProjectCategories = async (req, res) => {
   try {
-    logger.info('Fetching all Project Categories...');
-    const categories = await ProjectCategory.find().sort({ createdAt: -1 });
+    logger.info(
+      'Fetching all Project Categories with search and pagination...'
+    );
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      $or: [{ name: { $regex: searchRegex } }]
+    };
+
+    const [categories, total] = await Promise.all([
+      ProjectCategory.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parsedLimit),
+      ProjectCategory.countDocuments(query)
+    ]);
 
     logger.info('Project Categories fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data: categories
     });
   } catch (err) {
@@ -51,7 +73,6 @@ exports.getAllProjectCategories = async (req, res) => {
   }
 };
 
-// Get project category by ID
 exports.getProjectCategoryById = async (req, res) => {
   try {
     logger.info(`Fetching Project Category by ID: ${req.params.id}`);
@@ -79,7 +100,6 @@ exports.getProjectCategoryById = async (req, res) => {
   }
 };
 
-// Update project category by ID
 exports.updateProjectCategory = async (req, res) => {
   try {
     logger.info(`Updating Project Category by ID: ${req.params.id}`);
@@ -115,7 +135,6 @@ exports.updateProjectCategory = async (req, res) => {
   }
 };
 
-// Delete project category by ID
 exports.deleteProjectCategory = async (req, res) => {
   try {
     logger.info(`Deleting Project Category by ID: ${req.params.id}`);

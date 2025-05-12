@@ -35,12 +35,26 @@ exports.createCompanyValue = async (req, res) => {
 
 exports.getCompanyValues = async (req, res) => {
   try {
-    logger.info('Fetching all company values...');
-    const companyValues = await CompanyValue.find().sort({ displayOrder: 1 });
+    logger.info('Fetching company values with pagination and search...');
 
-    logger.info('Company values fetched successfully.');
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const query = {
+      companyTitle: { $regex: search, $options: 'i' }
+    };
+
+    const total = await CompanyValue.countDocuments(query);
+    const companyValues = await CompanyValue.find(query)
+      .sort({ displayOrder: 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    logger.info('Company values fetched successfully with pagination.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: companyValues
     });
   } catch (err) {

@@ -46,12 +46,26 @@ exports.createService = async (req, res) => {
 
 exports.getServices = async (req, res) => {
   try {
-    logger.info('Fetching all services...');
-    const services = await Service.find().sort({ displayOrder: 1 });
+    logger.info('Fetching services with pagination and search...');
 
-    logger.info('Services fetched successfully.');
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const query = {
+      serviceTitle: { $regex: search, $options: 'i' }
+    };
+
+    const total = await Service.countDocuments(query);
+    const services = await Service.find(query)
+      .sort({ displayOrder: 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    logger.info('Services fetched successfully with pagination.');
     return res.status(StatusCodes.OK).send({
       status: 'Success',
+      total,
+      page: Number(page),
+      limit: Number(limit),
       data: services
     });
   } catch (err) {

@@ -25,12 +25,34 @@ exports.createProject = async (req, res) => {
 
 exports.getAllProjects = async (req, res) => {
   try {
-    logger.info('Fetching all Project entries...');
-    const projects = await Projects.find().sort({ displayOrder: 1 });
+    logger.info('Fetching all Project entries with search and pagination...');
+
+    const { page = 1, limit = 10, search = '' } = req.query;
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
+    const searchRegex = new RegExp(search, 'i');
+
+    const query = {
+      $or: [{ title: { $regex: searchRegex } }]
+    };
+
+    const [projects, total] = await Promise.all([
+      Projects.find(query)
+        .sort({ displayOrder: 1 })
+        .skip(skip)
+        .limit(parsedLimit),
+      Projects.countDocuments(query)
+    ]);
 
     logger.info('Projects fetched successfully.');
     return res.status(StatusCodes.OK).json({
       status: 'Success',
+      total,
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data: projects
     });
   } catch (err) {
