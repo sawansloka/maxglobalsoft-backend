@@ -5,16 +5,6 @@ const { logger } = require('../../../../config/logger');
 exports.createSocialNetwork = async (req, res) => {
   try {
     logger.info('Attempting to create Social Network entry...');
-    const existing = await SocialNetwork.findOne();
-
-    if (existing) {
-      logger.warn('Social Network entry already exists. Creation aborted.');
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        status: 'Failed',
-        message:
-          'Social Network already exists. Please use the update endpoint.'
-      });
-    }
 
     const newEntry = new SocialNetwork(req.body);
     await newEntry.save();
@@ -36,31 +26,32 @@ exports.createSocialNetwork = async (req, res) => {
 
 exports.getSocialNetwork = async (req, res) => {
   try {
-    logger.info('Fetching Social Network entry with optional search...');
+    logger.info('Fetching all Social Network entries with optional search...');
 
     const { search = '' } = req.query;
     const searchRegex = new RegExp(search, 'i');
 
-    const query = {
-      $or: [
-        { facebook: { $regex: searchRegex } },
-        { instagram: { $regex: searchRegex } },
-        { twitter: { $regex: searchRegex } },
-        { linkedin: { $regex: searchRegex } },
-        { youtube: { $regex: searchRegex } }
-      ]
-    };
+    const query = {}; // Start with an empty query
+    if (search) {
+      query.$or = [
+        { facebookLink: { $regex: searchRegex } },
+        { instagramLink: { $regex: searchRegex } },
+        { twitterLink: { $regex: searchRegex } },
+        { linkedlnLink: { $regex: searchRegex } },
+        { youtubeLink: { $regex: searchRegex } },
+        { shortDescription: { $regex: searchRegex } },
+        { status: { $regex: searchRegex } }
+      ];
+    }
 
-    const data = search
-      ? await SocialNetwork.findOne(query)
-      : await SocialNetwork.findOne();
+    const data = await SocialNetwork.find(query);
 
     return res.status(StatusCodes.OK).json({
       status: 'Success',
-      data: data || {}
+      data
     });
   } catch (err) {
-    logger.error('Error fetching Social Network entry:', err.message);
+    logger.error('Error fetching Social Network entries:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       status: 'Fetch failed',
       error: err.message || err

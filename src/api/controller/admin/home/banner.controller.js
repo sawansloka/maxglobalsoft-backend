@@ -1,4 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose'); // Import mongoose here
 const Banner = require('../../../../model/admin/home/banner.model');
 const { logger } = require('../../../../config/logger');
 
@@ -25,6 +26,13 @@ exports.createBanner = async (req, res) => {
       data: newBanner
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Banner validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error creating banner:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Creation failed',
@@ -97,7 +105,8 @@ exports.updateBanner = async (req, res) => {
   try {
     logger.info(`Updating banner with ID: ${req.params.id}...`);
     const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, {
-      new: true
+      new: true,
+      runValidators: true // Add this option to trigger validation
     });
 
     if (!banner) {
@@ -115,6 +124,13 @@ exports.updateBanner = async (req, res) => {
       data: banner
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Banner validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error updating banner:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Update failed',

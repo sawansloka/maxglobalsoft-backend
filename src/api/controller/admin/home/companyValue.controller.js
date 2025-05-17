@@ -1,17 +1,26 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose'); // Import mongoose
 const CompanyValue = require('../../../../model/admin/home/companyValue.model');
 const { logger } = require('../../../../config/logger');
 
 exports.createCompanyValue = async (req, res) => {
   try {
     logger.info('Creating a new company value...');
-    const { companyTitle, url, shortDescription, displayOrder, status, image } =
-      req.body;
+    const {
+      companyTitle,
+      url,
+      shortDescription,
+      description,
+      displayOrder,
+      status,
+      image
+    } = req.body;
 
     const newCompanyValue = new CompanyValue({
       companyTitle,
       url,
       shortDescription,
+      description,
       displayOrder,
       status,
       image
@@ -25,6 +34,13 @@ exports.createCompanyValue = async (req, res) => {
       data: newCompanyValue
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Company value validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error creating company value:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Creation failed',
@@ -99,7 +115,7 @@ exports.updateCompanyValue = async (req, res) => {
     const companyValue = await CompanyValue.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true } // Added runValidators
     );
 
     if (!companyValue) {
@@ -117,6 +133,13 @@ exports.updateCompanyValue = async (req, res) => {
       data: companyValue
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Company value validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error updating company value:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Update failed',

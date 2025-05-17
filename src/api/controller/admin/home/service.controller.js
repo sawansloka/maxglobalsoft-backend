@@ -1,4 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose'); // Import mongoose
 const Service = require('../../../../model/admin/home/service.model');
 const { logger } = require('../../../../config/logger');
 
@@ -36,6 +37,13 @@ exports.createService = async (req, res) => {
       data: newService
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Service validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error creating service:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Creation failed',
@@ -107,9 +115,11 @@ exports.getServiceById = async (req, res) => {
 exports.updateService = async (req, res) => {
   try {
     logger.info(`Updating service with ID: ${req.params.id}...`);
-    const service = await Service.findByIdAndUpdate(req.params.id, req.body, {
-      new: true
-    });
+    const service = await Service.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true } // Added runValidators
+    );
 
     if (!service) {
       logger.warn('Service not found for update.');
@@ -126,6 +136,13 @@ exports.updateService = async (req, res) => {
       data: service
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Service validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error updating service:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Update failed',

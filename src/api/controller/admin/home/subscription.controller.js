@@ -1,4 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose'); // Import mongoose
 const Subscription = require('../../../../model/admin/home/subscription.model');
 const { logger } = require('../../../../config/logger');
 
@@ -18,6 +19,13 @@ exports.createSubscription = async (req, res) => {
       data: newSubscription
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Subscription validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error creating subscription:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Creation failed',
@@ -92,7 +100,7 @@ exports.updateSubscription = async (req, res) => {
     const updatedSubscription = await Subscription.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true } // Added runValidators
     );
 
     if (!updatedSubscription) {
@@ -110,6 +118,13 @@ exports.updateSubscription = async (req, res) => {
       data: updatedSubscription
     });
   } catch (err) {
+    if (err instanceof mongoose.Error.ValidationError) {
+      logger.error('Subscription validation failed:', err.message);
+      return res.status(StatusCodes.BAD_REQUEST).send({
+        status: 'Validation failed',
+        error: err.message
+      });
+    }
     logger.error('Error updating subscription:', err.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       status: 'Update failed',
