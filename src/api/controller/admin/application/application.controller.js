@@ -5,30 +5,7 @@ const { logger } = require('../../../../config/logger');
 exports.createApplication = async (req, res) => {
   try {
     logger.info('Creating new application...');
-    const {
-      jobId,
-      jobType,
-      applicantName,
-      contactNumber,
-      emailId,
-      date,
-      description,
-      status,
-      image
-    } = req.body;
-
-    const newApplication = new Application({
-      jobId,
-      jobType,
-      applicantName,
-      contactNumber,
-      emailId,
-      date,
-      description,
-      status,
-      image
-    });
-
+    const newApplication = new Application(req.body);
     await newApplication.save();
 
     logger.info('Application created successfully.');
@@ -39,7 +16,8 @@ exports.createApplication = async (req, res) => {
     });
   } catch (err) {
     logger.error('Error creating application:', err.message);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      // Changed to 400 for bad request
       status: 'Creation failed',
       error: err.message || err
     });
@@ -52,18 +30,24 @@ exports.getAllApplications = async (req, res) => {
 
     const { page = 1, limit = 10, search = '' } = req.query;
 
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const skip = (parsedPage - 1) * parsedLimit;
     const searchRegex = new RegExp(search, 'i');
 
     const query = {
-      applicantName: { $regex: searchRegex }
+      $or: [
+        { applicantName: { $regex: searchRegex } },
+        { jobType: { $regex: searchRegex } },
+        { emailId: { $regex: searchRegex } }
+      ]
     };
 
     const [applications, total] = await Promise.all([
       Application.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit, 10)),
+        .limit(parsedLimit),
       Application.countDocuments(query)
     ]);
 
@@ -71,9 +55,9 @@ exports.getAllApplications = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       status: 'Success',
       total,
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
-      totalPages: Math.ceil(total / limit),
+      page: parsedPage,
+      limit: parsedLimit,
+      totalPages: Math.ceil(total / parsedLimit),
       data: applications
     });
   } catch (err) {
@@ -105,6 +89,13 @@ exports.getApplicationById = async (req, res) => {
     });
   } catch (err) {
     logger.error('Error fetching application by ID:', err.message);
+    if (err.name === 'CastError') {
+      // Handle invalid ID format
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: 'Invalid ID',
+        error: 'Invalid application ID format'
+      });
+    }
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       status: 'Fetch failed',
       error: err.message || err
@@ -140,6 +131,12 @@ exports.updateApplication = async (req, res) => {
     });
   } catch (err) {
     logger.error('Error updating application:', err.message);
+    if (err.name === 'ValidationError') {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: 'Update failed',
+        error: err.message
+      });
+    }
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       status: 'Update failed',
       error: err.message || err
@@ -169,6 +166,13 @@ exports.deleteApplication = async (req, res) => {
     });
   } catch (err) {
     logger.error('Error deleting application:', err.message);
+    if (err.name === 'CastError') {
+      // Handle invalid ID format
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: 'Invalid ID',
+        error: 'Invalid application ID format'
+      });
+    }
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       status: 'Deletion failed',
       error: err.message || err
