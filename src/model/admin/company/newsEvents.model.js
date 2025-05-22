@@ -33,7 +33,7 @@ const newsEventsSchema = new mongoose.Schema(
       trim: true,
       minlength: [
         100,
-        'Short description must be less than or equal to 300 characters'
+        'Description must be more than or equal to 100 characters'
       ]
     },
     status: {
