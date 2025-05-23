@@ -39,11 +39,7 @@ const applicationSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      trim: true,
-      minlength: [
-        100,
-        'Long description must be more than or equal to 100 characters'
-      ]
+      required: [true, 'Description required']
     },
     status: {
       type: String,

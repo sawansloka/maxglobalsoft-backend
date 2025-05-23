@@ -32,19 +32,11 @@ const clientSpeakSchema = new mongoose.Schema(
     },
     shortDescription: {
       type: String,
-      trim: true,
-      maxlength: [
-        300,
-        'Short description must be less than or equal to 300 characters'
-      ]
+      required: [true, 'Short description required']
     },
     description: {
       type: String,
-      trim: true,
-      minlength: [
-        100,
-        'Description must be more than or equal to 100 characters'
-      ]
+      required: [true, 'Description required']
     },
     status: {
       type: String,

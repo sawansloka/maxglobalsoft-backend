@@ -58,11 +58,7 @@ const projectsSchema = new mongoose.Schema(
     },
     shortDescription: {
       type: String,
-      trim: true,
-      maxlength: [
-        300,
-        'Short description must be less than or equal to 300 characters'
-      ]
+      required: [true, 'Short description required']
     },
     displayOrder: {
       type: Number,
