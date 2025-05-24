@@ -1,5 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose'); // Import mongoose here
+const mongoose = require('mongoose');
 const Banner = require('../../../../model/admin/home/banner.model');
 const { logger } = require('../../../../config/logger');
 

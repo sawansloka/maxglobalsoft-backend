@@ -4,8 +4,6 @@ const { logger } = require('./logger');
 
 const connectToDatabase = async () => {
   try {
-    logger.info(`Connecting to MongoDB at URI: ${dbUri}`);
-
     await mongoose.connect(dbUri);
     logger.info('MongoDB database connection established successfully');
   } catch (error) {
